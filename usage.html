@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hera Awake Guard 사용법</title>
+  <title>mac-awakeguard 사용법</title>
   <style>
     :root { color-scheme: dark; --bg:#10131a; --card:#171c26; --text:#eef2ff; --muted:#aeb7c8; --accent:#8fd3ff; --warn:#ffd37a; --danger:#ff8f8f; --ok:#9dffb0; }
     body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; background:linear-gradient(135deg,#0f1320,#151827); color:var(--text); line-height:1.65; }
@@ -25,55 +25,66 @@
 </head>
 <body>
 <main>
-  <h1>🦉 Hera Awake Guard</h1>
-  <p class="lead">MacBook Air에서 Hermes Gateway와 Paperclip을 가능한 한 안정적으로 유지하기 위한 귀여운 올빼미 메뉴바 앱입니다.</p>
+  <h1>🦉 mac-awakeguard</h1>
+  <p class="lead">로컬 서버, 개발 작업, AI 에이전트, 다운로드가 유휴 절전으로 끊기지 않도록 돕는 macOS 메뉴 막대 앱입니다.</p>
 
   <div class="card danger">
     <h2>중요한 안전 한계</h2>
-    <p><strong>덮개를 닫고 배터리 상태로 가방 안에서 계속 온라인 상태를 유지하는 것은 macOS가 보장하는 안전 동작이 아닙니다.</strong></p>
-    <p>이 앱은 열 안전, 배터리 보호, clamshell 정책을 우회하지 않습니다. 가방 안 상시 구동은 발열 위험이 있어 권장하지 않습니다.</p>
+    <p><strong>mac-awakeguard는 유휴 절전 방지를 요청할 뿐, macOS의 하드웨어 안전 정책을 우회하지 않습니다.</strong></p>
+    <p>덮개를 닫고 배터리 상태로 가방 안에서 계속 실행하는 사용 방식은 보장하지 않으며 권장하지 않습니다.</p>
   </div>
 
-  <h2>설치 위치</h2>
+  <h2>설치 방법</h2>
   <div class="card">
-    <p><span class="pill">앱</span> <code>/Users/sungjin/Applications/HeraAwakeGuard.app</code></p>
-    <p><span class="pill">Finder 별칭</span> 바탕화면의 <code>Hera Awake Guard</code></p>
-    <p><span class="pill">소스</span> <code>/Users/sungjin/Projects/HeraAwakeGuard</code></p>
-    <p><span class="pill">로그</span> <code>/Users/sungjin/Library/Logs/HeraAwakeGuard.log</code></p>
+    <ol>
+      <li>GitHub Releases에서 최신 <code>mac-awakeguard.app.zip</code>을 다운로드합니다.</li>
+      <li>압축을 풉니다.</li>
+      <li><code>HeraAwakeGuard.app</code>을 <code>~/Applications</code> 또는 <code>/Applications</code>로 옮깁니다.</li>
+      <li>Finder에서 앱을 엽니다.</li>
+    </ol>
+    <p>macOS가 실행을 막으면 <strong>시스템 설정 → 개인정보 보호 및 보안 → Open Anyway</strong>를 선택하세요.</p>
+    <pre><code>xattr -dr com.apple.quarantine ~/Applications/HeraAwakeGuard.app
+open ~/Applications/HeraAwakeGuard.app</code></pre>
   </div>
 
-  <h2>실행 방법</h2>
+  <h2>실행 후 위치</h2>
+  <div class="card">
+    <p>Dock 아이콘은 보이지 않습니다. macOS 상단 메뉴 막대에 <code>🦉</code> 상태 아이콘이 표시됩니다.</p>
+    <p><span class="pill">앱</span> <code>~/Applications/HeraAwakeGuard.app</code> 또는 <code>/Applications/HeraAwakeGuard.app</code></p>
+    <p><span class="pill">로그</span> <code>~/Library/Logs/HeraAwakeGuard.log</code></p>
+  </div>
+
+  <h2>언제 쓰나</h2>
   <div class="card">
     <ul>
-      <li>Finder에서 <code>/Users/sungjin/Applications/HeraAwakeGuard.app</code>를 더블 클릭합니다.</li>
-      <li>또는 바탕화면의 <code>Hera Awake Guard</code> 별칭을 더블 클릭합니다.</li>
-      <li>터미널에서는 아래 명령을 사용할 수 있습니다.</li>
+      <li>로컬 개발 서버를 오래 켜두고 싶을 때</li>
+      <li>Hermes Gateway, Paperclip, 데이터베이스, 대시보드 같은 localhost 도구를 유지하고 싶을 때</li>
+      <li>AI 에이전트, 빌드, 다운로드, 긴 스크립트가 유휴 절전으로 중단되지 않게 하고 싶을 때</li>
+      <li>화면은 꺼두거나 잠금 상태로 두되 작업은 계속 돌리고 싶을 때</li>
     </ul>
-    <pre><code>open /Users/sungjin/Applications/HeraAwakeGuard.app</code></pre>
-    <p>실행하면 Dock에는 보이지 않고, macOS 상단 메뉴바에 <code>🦉 Hera</code>가 표시됩니다.</p>
   </div>
 
   <h2>메뉴 사용법</h2>
   <div class="grid">
     <div class="card">
       <h3>시간 선택</h3>
-      <p>메뉴바의 <code>🦉 Hera</code>를 클릭하거나 우클릭한 뒤 <strong>시간 선택</strong>에서 <strong>1시간부터 25시간</strong>까지 고를 수 있습니다.</p>
+      <p>메뉴 막대 아이콘을 클릭한 뒤 <strong>1시간부터 25시간</strong>까지 원하는 시간을 선택합니다.</p>
     </div>
     <div class="card">
       <h3>무한 유지</h3>
-      <p>직접 끄기 전까지 깨어 있도록 요청합니다. 덮개가 열린 상태 또는 안전한 clamshell 조건에서 사용하세요.</p>
+      <p>직접 끄기 전까지 유휴 절전 방지를 요청합니다. 전원과 통풍이 확보된 상태에서 사용하세요.</p>
     </div>
     <div class="card">
       <h3>Gateway Guard</h3>
-      <p>깨어 있음 assertion을 유지하면서 Hermes Gateway와 Paperclip 상태를 주기적으로 점검합니다.</p>
+      <p>유휴 절전 방지를 유지하면서 로컬 Hermes Gateway와 Paperclip 상태를 점검합니다.</p>
     </div>
     <div class="card">
       <h3>끄기 · 원래 상태</h3>
-      <p>Hera가 잡은 전원 유지 assertion을 해제해서 macOS 기본 절전 동작으로 되돌립니다.</p>
+      <p>앱이 만든 power assertion을 해제하고 macOS 기본 절전 동작으로 되돌립니다.</p>
     </div>
     <div class="card">
       <h3>잠금 화면으로 전환하고 끄기</h3>
-      <p>잠금 화면을 띄우기 전에 Hera Awake 상태를 해제합니다. 메뉴를 쓰지 않고 <code>Control + Command + Q</code>로 잠금 화면에 들어가도 세션 비활성 이벤트를 감지해 원래 상태로 돌립니다.</p>
+      <p>잠금 화면으로 전환하기 전에 awake 상태를 해제합니다.</p>
     </div>
     <div class="card">
       <h3>종료</h3>
@@ -81,35 +92,19 @@
     </div>
   </div>
 
+  <h2>동작 확인</h2>
+  <div class="card">
+    <pre><code>pmset -g assertions | grep -i "Awake Guard"</code></pre>
+    <p class="ok">정상일 때: 앱이 활성화된 동안 power assertion 항목이 보입니다.</p>
+  </div>
+
   <h2>권장 운영 패턴</h2>
   <div class="card warn">
     <ul>
-      <li><strong>책상 위 장시간 운영:</strong> 전원 연결, 통풍 확보, 가능하면 덮개 열림 상태 유지.</li>
+      <li><strong>장시간 운영:</strong> 전원 연결, 통풍 확보, 가능하면 덮개 열림 상태 유지.</li>
       <li><strong>닫힌 덮개 운영:</strong> AC 전원 + 외부 디스플레이/키보드/마우스가 있는 공식 clamshell 조건에서만 권장.</li>
-      <li><strong>가방 이동:</strong> 앱을 켜도 macOS가 잠들 수 있습니다. 발열 때문에 상시 구동을 권장하지 않습니다.</li>
-      <li><strong>항상 외부 접속이 필요하면:</strong> 고정 Mac, NAS, VPS, 또는 클라우드 Hermes Gateway가 더 안정적입니다.</li>
-    </ul>
-  </div>
-
-  <h2>상태 점검 명령</h2>
-  <div class="card">
-    <pre><code>pmset -g assertions | grep -i "Hera Awake Guard"
-launchctl print gui/$(id -u)/ai.hermes.gateway-hera | egrep 'state =|pid =|runs ='
-launchctl print gui/$(id -u)/ai.paperclip.default | egrep 'state =|pid =|runs ='
-curl http://127.0.0.1:3100/api/health</code></pre>
-    <p class="ok">정상일 때: power assertion에 Hera Awake Guard가 보이고, gateway/paperclip은 running, Paperclip health는 ok입니다.</p>
-  </div>
-
-  <h2>이번 버전 검증 결과</h2>
-  <div class="card">
-    <ul>
-      <li>1시간부터 25시간까지 시간 선택 메뉴 추가</li>
-      <li>무한 유지, Gateway Guard, 끄기, 종료 메뉴 확인</li>
-      <li>귀여운 올빼미 앱 아이콘 적용</li>
-      <li>Finder 더블클릭 실행 확인</li>
-      <li>2시간 타이머 실행 시 <code>2 Hour Timer</code> assertion 생성 확인</li>
-      <li>앱 종료 후 assertion 해제 확인</li>
-      <li><code>Control + Command + Q</code> 잠금 화면 진입 시 원래 상태로 돌리는 세션 비활성 감지 로직 추가</li>
+      <li><strong>가방 이동:</strong> 발열 위험 때문에 상시 구동을 권장하지 않습니다.</li>
+      <li><strong>항상 외부 접속 필요:</strong> 고정 Mac, NAS, VPS, 클라우드 서버가 더 안정적입니다.</li>
     </ul>
   </div>
 </main>

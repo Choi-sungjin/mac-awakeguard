@@ -4,7 +4,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$PROJECT_ROOT/build"
 APP_NAME="HeraAwakeGuard"
-APP_BUNDLE="/Users/sungjin/Applications/${APP_NAME}.app"
+APP_BUNDLE="$HOME/Applications/${APP_NAME}.app"
 BIN_DIR="$APP_BUNDLE/Contents/MacOS"
 RESOURCES_DIR="$APP_BUNDLE/Contents/Resources"
 

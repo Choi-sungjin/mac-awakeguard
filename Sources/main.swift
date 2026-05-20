@@ -19,6 +19,50 @@ final class Shell {
     }
 }
 
+func commandLineLaunchdRunning(_ label: String) -> Bool {
+    let result = Shell.run("/bin/launchctl", ["print", "gui/\(getuid())/\(label)"])
+    return result.1.contains("state = running")
+}
+
+func commandLineClamshellClosed() -> Bool {
+    let result = Shell.run("/usr/sbin/ioreg", ["-r", "-k", "AppleClamshellState", "-d", "4"])
+    return result.1.contains("AppleClamshellState\" = Yes")
+}
+
+func commandLineHealthSummary() -> String {
+    let gateway = commandLineLaunchdRunning("ai.hermes.gateway-hera") ? "Gateway OK" : "Gateway failed"
+    let paperclip = commandLineLaunchdRunning("ai.paperclip.default") ? "Paperclip OK" : "Paperclip failed"
+    let curl = Shell.run("/usr/bin/curl", ["-sS", "-m", "3", "http://127.0.0.1:3100/api/health"])
+    let paperclipHttp = (curl.0 == 0 && curl.1.contains("ok")) ? "HTTP OK" : "HTTP failed"
+    let lidWarning = commandLineClamshellClosed() ? " / warning: lid closed" : ""
+    return "\(gateway), \(paperclip), \(paperclipHttp)\(lidWarning)"
+}
+
+func runCommandLineModeIfRequested() {
+    if CommandLine.arguments.contains("--health-check") {
+        print(commandLineHealthSummary())
+        exit(0)
+    }
+
+    guard let idx = CommandLine.arguments.firstIndex(of: "--assert-seconds"),
+          CommandLine.arguments.indices.contains(idx + 1),
+          let seconds = Int(CommandLine.arguments[idx + 1]),
+          seconds > 0 else { return }
+
+    var systemAssertion = IOPMAssertionID(0)
+    var displayAssertion = IOPMAssertionID(0)
+    let reason = "Hera Awake Guard - QA Smoke" as CFString
+    let systemResult = IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleSystemSleep as CFString, IOPMAssertionLevel(kIOPMAssertionLevelOn), reason, &systemAssertion)
+    let displayResult = IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep as CFString, IOPMAssertionLevel(kIOPMAssertionLevelOn), reason, &displayAssertion)
+    print("systemAssertion=\(systemResult == kIOReturnSuccess ? "created" : "failed") displayAssertion=\(displayResult == kIOReturnSuccess ? "created" : "failed") seconds=\(seconds)")
+    fflush(stdout)
+    sleep(UInt32(seconds))
+    if systemAssertion != 0 { IOPMAssertionRelease(systemAssertion) }
+    if displayAssertion != 0 { IOPMAssertionRelease(displayAssertion) }
+    print("released")
+    exit(systemResult == kIOReturnSuccess ? 0 : 1)
+}
+
 enum AwakeMode: Equatable {
     case off
     case timed(hours: Int, end: Date)
@@ -60,8 +104,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timer: Timer?
     private var statusImage: NSImage?
     private var lastHealth = "시작 중"
-    private let logFile = "/Users/sungjin/Library/Logs/HeraAwakeGuard.log"
-    private let usagePath = "/Users/sungjin/Projects/HeraAwakeGuard/usage.html"
+    private let logFile = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/HeraAwakeGuard.log").path
+    private var usagePath: String { Bundle.main.path(forResource: "usage", ofType: "html") ?? "" }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         ProcessInfo.processInfo.disableAutomaticTermination("Hera Awake Guard keeps a menu bar status item and power assertion alive")
@@ -268,6 +312,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 }
+
+runCommandLineModeIfRequested()
 
 let app = NSApplication.shared
 let delegate = AppDelegate()

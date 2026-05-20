@@ -1,22 +1,22 @@
 # mac-awakeguard
 
-**mac-awakeguard** is a small, safe macOS menu bar utility for keeping your Mac awake during local work sessions.
+**mac-awakeguard** is a small, safe macOS menu bar utility that keeps your Mac awake during local work sessions.
 
-It is useful when you are running local services, background jobs, agent workflows, or development tools that should remain available while the display sleeps or the screen is locked.
+Use it when local servers, background jobs, AI agents, downloads, or development tools should keep running while the display sleeps or the screen is locked.
 
-> Safety boundary: mac-awakeguard does **not** bypass macOS hardware safety behavior, closed-lid battery sleep, clamshell requirements, or thermal protections.
+> Safety boundary: mac-awakeguard prevents **idle sleep**. It does **not** bypass macOS hardware safety behavior, closed-lid battery sleep, clamshell requirements, or thermal protections.
 
 ## When to use it
 
-Use mac-awakeguard when you want to temporarily prevent idle sleep while your Mac is in a safe working condition.
+Use mac-awakeguard when your Mac is in a safe working condition and you want to temporarily prevent idle sleep.
 
 Good use cases:
 
-- Keeping local development servers available during a long task.
-- Keeping Hermes Gateway, Paperclip, or other localhost tools reachable.
-- Running local AI agents, build jobs, downloads, or scripts without idle sleep interrupting them.
-- Keeping a Mac awake while the display is off or the screen is locked.
-- Running a timed awake session, such as 1 hour, 2 hours, or a full work block.
+- Keep a local development server available during a long task.
+- Keep localhost tools such as Hermes Gateway, Paperclip, databases, dashboards, or dev servers reachable.
+- Run local AI agents, build jobs, downloads, or scripts without idle sleep interrupting them.
+- Keep work running while the display is off or the screen is locked.
+- Start a timed awake session, such as 1 hour, 2 hours, or a full work block.
 
 Do **not** use it as a promise that a MacBook will keep running with the lid closed on battery power.
 
@@ -27,43 +27,47 @@ Not supported / not recommended:
 - Disabling SIP, kernel protections, or system-wide power settings.
 - Overriding thermal, battery, or hardware safety behavior.
 
-## What it does
-
-mac-awakeguard uses standard macOS IOKit power assertions to request that macOS avoid idle sleep for a selected duration.
-
-Main features:
+## Features
 
 - Menu bar app with no Dock icon.
 - Timed awake sessions from 1 to 25 hours.
 - Infinite mode until manually disabled.
-- Gateway Guard mode for checking Hermes Gateway and Paperclip status.
+- Gateway Guard mode for checking local Hermes Gateway / Paperclip status.
 - Manual health check.
-- Quick access to logs and usage guide.
-- Safe warnings for closed-lid and battery-related limitations.
+- Quick access to logs and the bundled usage guide.
+- Conservative safety warnings around closed-lid and battery-related limitations.
 
-## Installation
+## Install from a release build
 
-### Option 1: Download a release build
+1. Go to the repository's **Releases** page.
+2. Download the latest `mac-awakeguard.app.zip` asset.
+3. Unzip the file.
+4. Move the `.app` into your Applications folder:
+   - recommended for one user: `~/Applications/`
+   - system-wide: `/Applications/`
+5. Open the app from Finder.
 
-1. Download the latest `mac-awakeguard.app.zip` from the GitHub Releases page.
-2. Unzip it.
-3. Move `mac-awakeguard.app` or `HeraAwakeGuard.app` to your `Applications` folder.
-4. Open the app.
-
-If macOS blocks the app because it is unsigned or locally signed:
+If macOS blocks the app because it is downloaded from the internet or locally signed:
 
 1. Open **System Settings** → **Privacy & Security**.
 2. Find the blocked app message.
 3. Click **Open Anyway**.
 
-Or run:
+You can also remove quarantine from Terminal after moving the app:
+
+```bash
+xattr -dr com.apple.quarantine ~/Applications/HeraAwakeGuard.app
+open ~/Applications/HeraAwakeGuard.app
+```
+
+If you moved it to `/Applications`, use:
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/HeraAwakeGuard.app
 open /Applications/HeraAwakeGuard.app
 ```
 
-### Option 2: Build from source
+## Build from source
 
 Requirements:
 
@@ -71,19 +75,25 @@ Requirements:
 - Xcode Command Line Tools
 - Swift compiler
 
-Build and install:
+Install Xcode Command Line Tools if needed:
+
+```bash
+xcode-select --install
+```
+
+Clone, build, and install for the current user:
 
 ```bash
 git clone https://github.com/Choi-sungjin/mac-awakeguard.git
 cd mac-awakeguard
 ./scripts/build_and_install.sh
-open /Users/sungjin/Applications/HeraAwakeGuard.app
+open ~/Applications/HeraAwakeGuard.app
 ```
 
-Current local install path used by the build script:
+The build script installs the app to:
 
 ```text
-/Users/sungjin/Applications/HeraAwakeGuard.app
+~/Applications/HeraAwakeGuard.app
 ```
 
 ## How to use
@@ -101,13 +111,14 @@ Useful modes:
 
 - **Timed session**: keeps the Mac awake for a selected number of hours.
 - **Infinite**: keeps the Mac awake until you manually turn it off.
-- **Gateway Guard**: keeps the Mac awake and checks Hermes Gateway / Paperclip health.
-- **Run health check**: checks the current service state immediately.
+- **Gateway Guard**: keeps the Mac awake and checks local Hermes Gateway / Paperclip health.
+- **Run health check**: checks the current local service state immediately.
 - **Open logs**: opens the local app log.
+- **Open usage**: opens the bundled HTML usage guide.
 
 ## Verify that it is working
 
-Run:
+Start an awake session from the menu, then run:
 
 ```bash
 pmset -g assertions | grep -i "Awake Guard"
@@ -115,19 +126,11 @@ pmset -g assertions | grep -i "Awake Guard"
 
 When mac-awakeguard is active, you should see a power assertion created by the app.
 
-You can also run the smoke test from the source directory:
+From a source checkout, you can also run:
 
 ```bash
 ./scripts/qa_smoke.sh
 ```
-
-The smoke test verifies:
-
-- menu bar app configuration (`LSUIElement=true`)
-- power assertion creation and release
-- Hermes Gateway / Paperclip launchd status
-- Paperclip health endpoint
-- app-level health check
 
 ## Safety notes
 
@@ -150,16 +153,16 @@ Recommended long-running setup:
 
 ## Development
 
-Build:
+Build and install locally:
 
 ```bash
 ./scripts/build_and_install.sh
 ```
 
-Run:
+Run the installed app:
 
 ```bash
-open /Users/sungjin/Applications/HeraAwakeGuard.app
+open ~/Applications/HeraAwakeGuard.app
 ```
 
 Smoke test:
@@ -168,10 +171,11 @@ Smoke test:
 ./scripts/qa_smoke.sh
 ```
 
-Package manually:
+Package a release zip:
 
 ```bash
-cd /Users/sungjin/Applications
+./scripts/build_and_install.sh
+cd ~/Applications
 ditto -c -k --keepParent HeraAwakeGuard.app ~/Desktop/mac-awakeguard.app.zip
 shasum -a 256 ~/Desktop/mac-awakeguard.app.zip
 ```
