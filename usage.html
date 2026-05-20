@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hera Awake Guard 사용법</title>
+  <style>
+    :root { color-scheme: dark; --bg:#10131a; --card:#171c26; --text:#eef2ff; --muted:#aeb7c8; --accent:#8fd3ff; --warn:#ffd37a; --danger:#ff8f8f; --ok:#9dffb0; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif; background:linear-gradient(135deg,#0f1320,#151827); color:var(--text); line-height:1.65; }
+    main { max-width:920px; margin:0 auto; padding:44px 22px 64px; }
+    h1 { font-size:34px; margin:0 0 8px; }
+    h2 { margin-top:32px; color:var(--accent); }
+    h3 { margin-bottom:8px; }
+    .lead { color:var(--muted); font-size:18px; }
+    .card { background:rgba(23,28,38,.92); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:20px; margin:18px 0; box-shadow:0 16px 50px rgba(0,0,0,.24); }
+    .warn { border-color:rgba(255,211,122,.45); background:rgba(94,66,18,.25); }
+    .danger { border-color:rgba(255,143,143,.55); background:rgba(92,30,38,.28); }
+    .ok { color:var(--ok); }
+    code { background:#0b0e15; padding:2px 6px; border-radius:6px; }
+    pre { background:#0b0e15; border-radius:12px; padding:14px; overflow:auto; }
+    ul { padding-left:22px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+    .pill { display:inline-block; border:1px solid rgba(143,211,255,.35); color:var(--accent); border-radius:999px; padding:4px 10px; margin:3px 6px 3px 0; font-size:13px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>🦉 Hera Awake Guard</h1>
+  <p class="lead">MacBook Air에서 Hermes Gateway와 Paperclip을 가능한 한 안정적으로 유지하기 위한 귀여운 올빼미 메뉴바 앱입니다.</p>
+
+  <div class="card danger">
+    <h2>중요한 안전 한계</h2>
+    <p><strong>덮개를 닫고 배터리 상태로 가방 안에서 계속 온라인 상태를 유지하는 것은 macOS가 보장하는 안전 동작이 아닙니다.</strong></p>
+    <p>이 앱은 열 안전, 배터리 보호, clamshell 정책을 우회하지 않습니다. 가방 안 상시 구동은 발열 위험이 있어 권장하지 않습니다.</p>
+  </div>
+
+  <h2>설치 위치</h2>
+  <div class="card">
+    <p><span class="pill">앱</span> <code>/Users/sungjin/Applications/HeraAwakeGuard.app</code></p>
+    <p><span class="pill">Finder 별칭</span> 바탕화면의 <code>Hera Awake Guard</code></p>
+    <p><span class="pill">소스</span> <code>/Users/sungjin/Projects/HeraAwakeGuard</code></p>
+    <p><span class="pill">로그</span> <code>/Users/sungjin/Library/Logs/HeraAwakeGuard.log</code></p>
+  </div>
+
+  <h2>실행 방법</h2>
+  <div class="card">
+    <ul>
+      <li>Finder에서 <code>/Users/sungjin/Applications/HeraAwakeGuard.app</code>를 더블 클릭합니다.</li>
+      <li>또는 바탕화면의 <code>Hera Awake Guard</code> 별칭을 더블 클릭합니다.</li>
+      <li>터미널에서는 아래 명령을 사용할 수 있습니다.</li>
+    </ul>
+    <pre><code>open /Users/sungjin/Applications/HeraAwakeGuard.app</code></pre>
+    <p>실행하면 Dock에는 보이지 않고, macOS 상단 메뉴바에 <code>🦉 Hera</code>가 표시됩니다.</p>
+  </div>
+
+  <h2>메뉴 사용법</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>시간 선택</h3>
+      <p>메뉴바의 <code>🦉 Hera</code>를 클릭하거나 우클릭한 뒤 <strong>시간 선택</strong>에서 <strong>1시간부터 25시간</strong>까지 고를 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <h3>무한 유지</h3>
+      <p>직접 끄기 전까지 깨어 있도록 요청합니다. 덮개가 열린 상태 또는 안전한 clamshell 조건에서 사용하세요.</p>
+    </div>
+    <div class="card">
+      <h3>Gateway Guard</h3>
+      <p>깨어 있음 assertion을 유지하면서 Hermes Gateway와 Paperclip 상태를 주기적으로 점검합니다.</p>
+    </div>
+    <div class="card">
+      <h3>끄기 · 원래 상태</h3>
+      <p>Hera가 잡은 전원 유지 assertion을 해제해서 macOS 기본 절전 동작으로 되돌립니다.</p>
+    </div>
+    <div class="card">
+      <h3>잠금 화면으로 전환하고 끄기</h3>
+      <p>잠금 화면을 띄우기 전에 Hera Awake 상태를 해제합니다. 메뉴를 쓰지 않고 <code>Control + Command + Q</code>로 잠금 화면에 들어가도 세션 비활성 이벤트를 감지해 원래 상태로 돌립니다.</p>
+    </div>
+    <div class="card">
+      <h3>종료</h3>
+      <p>앱을 종료하고 assertion을 해제합니다.</p>
+    </div>
+  </div>
+
+  <h2>권장 운영 패턴</h2>
+  <div class="card warn">
+    <ul>
+      <li><strong>책상 위 장시간 운영:</strong> 전원 연결, 통풍 확보, 가능하면 덮개 열림 상태 유지.</li>
+      <li><strong>닫힌 덮개 운영:</strong> AC 전원 + 외부 디스플레이/키보드/마우스가 있는 공식 clamshell 조건에서만 권장.</li>
+      <li><strong>가방 이동:</strong> 앱을 켜도 macOS가 잠들 수 있습니다. 발열 때문에 상시 구동을 권장하지 않습니다.</li>
+      <li><strong>항상 외부 접속이 필요하면:</strong> 고정 Mac, NAS, VPS, 또는 클라우드 Hermes Gateway가 더 안정적입니다.</li>
+    </ul>
+  </div>
+
+  <h2>상태 점검 명령</h2>
+  <div class="card">
+    <pre><code>pmset -g assertions | grep -i "Hera Awake Guard"
+launchctl print gui/$(id -u)/ai.hermes.gateway-hera | egrep 'state =|pid =|runs ='
+launchctl print gui/$(id -u)/ai.paperclip.default | egrep 'state =|pid =|runs ='
+curl http://127.0.0.1:3100/api/health</code></pre>
+    <p class="ok">정상일 때: power assertion에 Hera Awake Guard가 보이고, gateway/paperclip은 running, Paperclip health는 ok입니다.</p>
+  </div>
+
+  <h2>이번 버전 검증 결과</h2>
+  <div class="card">
+    <ul>
+      <li>1시간부터 25시간까지 시간 선택 메뉴 추가</li>
+      <li>무한 유지, Gateway Guard, 끄기, 종료 메뉴 확인</li>
+      <li>귀여운 올빼미 앱 아이콘 적용</li>
+      <li>Finder 더블클릭 실행 확인</li>
+      <li>2시간 타이머 실행 시 <code>2 Hour Timer</code> assertion 생성 확인</li>
+      <li>앱 종료 후 assertion 해제 확인</li>
+      <li><code>Control + Command + Q</code> 잠금 화면 진입 시 원래 상태로 돌리는 세션 비활성 감지 로직 추가</li>
+    </ul>
+  </div>
+</main>
+</body>
+</html>

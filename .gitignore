@@ -1,0 +1,17 @@
+# Build artifacts
+build/
+*.o
+*.dSYM/
+
+# Local backups / transient files
+backups/
+*.bak
+.DS_Store
+
+# Packaged distributables
+*.zip
+*.dmg
+
+# macOS signing/cache metadata
+*.xcuserstate
+Icon?
