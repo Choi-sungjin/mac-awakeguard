@@ -1,63 +1,181 @@
-# Hera Awake Guard
+# mac-awakeguard
 
-Hera Awake Guard는 MacBook이 **열려 있는 동안에만** Hermes Gateway와 Paperclip 접근성을 지키기 위한 macOS 메뉴바 앱입니다. 이 앱은 닫힌 뚜껑 상태에서 배터리만으로 안전하지 않게 강제 각성을 약속하지 않습니다.
+**mac-awakeguard** is a small, safe macOS menu bar utility for keeping your Mac awake during local work sessions.
 
-## 핵심 안전 원칙
+It is useful when you are running local services, background jobs, agent workflows, or development tools that should remain available while the display sleeps or the screen is locked.
 
-- 닫힌 뚜껑 + 배터리 환경에서는 macOS가 계속 깨어 있지 않을 수 있습니다.
-- 가방 안에 넣은 채로 각성을 유지하려는 사용 방식은 열 위험이 있으므로 지원하지 않습니다.
-- SIP 비활성화, 커널 확장, 전역 `pmset` 변경은 사용하지 않습니다.
+> Safety boundary: mac-awakeguard does **not** bypass macOS hardware safety behavior, closed-lid battery sleep, clamshell requirements, or thermal protections.
 
-## 소스와 설치 위치
+## When to use it
 
-- 소스: `/Users/sungjin/Projects/HeraAwakeGuard`
-- 앱 번들: `/Users/sungjin/Applications/HeraAwakeGuard.app`
-- 앱 로그: `~/Library/Logs/HeraAwakeGuard/hera-awake-guard.log`
+Use mac-awakeguard when you want to temporarily prevent idle sleep while your Mac is in a safe working condition.
 
-## 빌드 및 설치
+Good use cases:
+
+- Keeping local development servers available during a long task.
+- Keeping Hermes Gateway, Paperclip, or other localhost tools reachable.
+- Running local AI agents, build jobs, downloads, or scripts without idle sleep interrupting them.
+- Keeping a Mac awake while the display is off or the screen is locked.
+- Running a timed awake session, such as 1 hour, 2 hours, or a full work block.
+
+Do **not** use it as a promise that a MacBook will keep running with the lid closed on battery power.
+
+Not supported / not recommended:
+
+- Keeping a closed MacBook awake inside a bag.
+- Bypassing macOS clamshell mode requirements.
+- Disabling SIP, kernel protections, or system-wide power settings.
+- Overriding thermal, battery, or hardware safety behavior.
+
+## What it does
+
+mac-awakeguard uses standard macOS IOKit power assertions to request that macOS avoid idle sleep for a selected duration.
+
+Main features:
+
+- Menu bar app with no Dock icon.
+- Timed awake sessions from 1 to 25 hours.
+- Infinite mode until manually disabled.
+- Gateway Guard mode for checking Hermes Gateway and Paperclip status.
+- Manual health check.
+- Quick access to logs and usage guide.
+- Safe warnings for closed-lid and battery-related limitations.
+
+## Installation
+
+### Option 1: Download a release build
+
+1. Download the latest `mac-awakeguard.app.zip` from the GitHub Releases page.
+2. Unzip it.
+3. Move `mac-awakeguard.app` or `HeraAwakeGuard.app` to your `Applications` folder.
+4. Open the app.
+
+If macOS blocks the app because it is unsigned or locally signed:
+
+1. Open **System Settings** → **Privacy & Security**.
+2. Find the blocked app message.
+3. Click **Open Anyway**.
+
+Or run:
 
 ```bash
-cd /Users/sungjin/Projects/HeraAwakeGuard
+xattr -dr com.apple.quarantine /Applications/HeraAwakeGuard.app
+open /Applications/HeraAwakeGuard.app
+```
+
+### Option 2: Build from source
+
+Requirements:
+
+- macOS 13 or newer
+- Xcode Command Line Tools
+- Swift compiler
+
+Build and install:
+
+```bash
+git clone https://github.com/Choi-sungjin/mac-awakeguard.git
+cd mac-awakeguard
 ./scripts/build_and_install.sh
 open /Users/sungjin/Applications/HeraAwakeGuard.app
 ```
 
-앱이 실행되면 Dock 아이콘 없이 메뉴바에 `Hera Awake ...` 텍스트가 나타납니다.
+Current local install path used by the build script:
 
-## 메뉴 기능
+```text
+/Users/sungjin/Applications/HeraAwakeGuard.app
+```
 
-- `Enable 1h`: 1시간 동안 유휴 시스템 절전을 막습니다.
-- `Enable until disabled`: 끌 때까지 유휴 시스템 절전을 막습니다.
-- `Gateway Guard`: 각성 유지 + Hermes Gateway / Paperclip 상태를 30초마다 점검합니다.
-- `Open logs`: 앱 로그와 게이트웨이 로그를 엽니다.
-- `Run health check`: 현재 상태를 즉시 점검하고 결과를 팝업으로 보여줍니다.
-- `Open usage`: HTML 사용 가이드를 엽니다.
+## How to use
 
-## QA
+After opening the app, it appears in the macOS menu bar. It does not show a Dock icon.
 
-터미널에서 가장 작은 스모크 검증은 아래 명령 하나로 끝낼 수 있습니다.
+Typical flow:
+
+1. Click the menu bar icon.
+2. Choose a duration such as `1 hour`, `2 hours`, or another timed session.
+3. Leave your Mac in a safe condition: on a desk, with airflow, preferably connected to power for long sessions.
+4. When finished, choose `Disable` or quit the app.
+
+Useful modes:
+
+- **Timed session**: keeps the Mac awake for a selected number of hours.
+- **Infinite**: keeps the Mac awake until you manually turn it off.
+- **Gateway Guard**: keeps the Mac awake and checks Hermes Gateway / Paperclip health.
+- **Run health check**: checks the current service state immediately.
+- **Open logs**: opens the local app log.
+
+## Verify that it is working
+
+Run:
 
 ```bash
-cd /Users/sungjin/Projects/HeraAwakeGuard
+pmset -g assertions | grep -i "Awake Guard"
+```
+
+When mac-awakeguard is active, you should see a power assertion created by the app.
+
+You can also run the smoke test from the source directory:
+
+```bash
 ./scripts/qa_smoke.sh
 ```
 
-이 스크립트는 다음을 검증합니다.
+The smoke test verifies:
 
-- `LSUIElement=true`
-- 헤드리스 assertion 생성/해제
-- `pmset -g assertions`에 Hera assertion 노출
-- `launchctl`에서 Hermes Gateway / Paperclip running 확인
-- `curl http://127.0.0.1:3100/api/health`
-- 앱 자체 `--health-check`
+- menu bar app configuration (`LSUIElement=true`)
+- power assertion creation and release
+- Hermes Gateway / Paperclip launchd status
+- Paperclip health endpoint
+- app-level health check
 
-## 수동 확인
+## Safety notes
+
+mac-awakeguard is intentionally conservative.
+
+It does not:
+
+- force a MacBook to stay awake in unsafe closed-lid battery conditions
+- bypass thermal protections
+- change global `pmset` settings
+- install kernel extensions
+- require SIP to be disabled
+
+Recommended long-running setup:
+
+- Keep the Mac on a desk with airflow.
+- Connect power for long sessions.
+- Prefer lid open for the safest behavior.
+- If using closed-lid mode, use official clamshell conditions: AC power, external display, keyboard, and mouse/trackpad.
+
+## Development
+
+Build:
+
+```bash
+./scripts/build_and_install.sh
+```
+
+Run:
 
 ```bash
 open /Users/sungjin/Applications/HeraAwakeGuard.app
-pmset -g assertions
 ```
 
-메뉴에서 `Enable 1h` 또는 `Gateway Guard`를 누른 뒤 `pmset -g assertions` 출력에 `Hera Awake Guard`가 보이면 정상입니다. 메뉴에서 `Disable`을 누른 뒤 같은 문자열이 사라지는지도 확인합니다.
+Smoke test:
 
-닫힌 뚜껑이나 배터리 상태에서 경고가 보이면 의도된 동작입니다. 이 앱은 그 상황을 감추지 않고 명시적으로 알립니다.
+```bash
+./scripts/qa_smoke.sh
+```
+
+Package manually:
+
+```bash
+cd /Users/sungjin/Applications
+ditto -c -k --keepParent HeraAwakeGuard.app ~/Desktop/mac-awakeguard.app.zip
+shasum -a 256 ~/Desktop/mac-awakeguard.app.zip
+```
+
+## License
+
+MIT
