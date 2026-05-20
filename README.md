@@ -1,10 +1,10 @@
 # mac-awakeguard
 
-**mac-awakeguard** is a small, safe macOS menu bar utility that keeps your Mac awake during local work sessions.
+**mac-awakeguard** is a small macOS menu bar utility for one core goal: keep your local gateway reachable while the Mac is closed, locked, or left running for local work.
 
-Use it when local servers, background jobs, AI agents, downloads, or development tools should keep running while the display sleeps or the screen is locked.
+It starts in **Gateway Guard** mode by default. That mode keeps a macOS awake assertion active and checks local Hermes Gateway / Paperclip health so gateway access has the best chance of staying online while the cover is closed.
 
-> Safety boundary: mac-awakeguard prevents **idle sleep**. It does **not** bypass macOS hardware safety behavior, closed-lid battery sleep, clamshell requirements, or thermal protections.
+> Safety boundary: mac-awakeguard prevents **idle sleep** and is designed for safe closed-cover gateway sessions, especially on AC power. It does **not** bypass macOS hardware safety behavior, unsafe closed-lid battery sleep, clamshell requirements, or thermal protections.
 
 ## When to use it
 
@@ -15,7 +15,8 @@ Good use cases:
 - Keep a local development server available during a long task.
 - Keep localhost tools such as Hermes Gateway, Paperclip, databases, dashboards, or dev servers reachable.
 - Run local AI agents, build jobs, downloads, or scripts without idle sleep interrupting them.
-- Keep work running while the display is off or the screen is locked.
+- Keep work running while the display is off, the screen is locked, or the cover is closed in a safe setup.
+- Start Gateway Guard before closing the cover so the gateway remains reachable when macOS allows the machine to stay awake.
 - Start a timed awake session, such as 1 hour, 2 hours, or a full work block.
 
 Do **not** use it as a promise that a MacBook will keep running with the lid closed on battery power.
@@ -32,7 +33,8 @@ Not supported / not recommended:
 - Menu bar app with no Dock icon.
 - Timed awake sessions from 1 to 25 hours.
 - Infinite mode until manually disabled.
-- Gateway Guard mode for checking local Hermes Gateway / Paperclip status.
+- Gateway Guard mode enabled by default at launch.
+- Gateway Guard keeps awake assertions active and checks local Hermes Gateway / Paperclip status.
 - Manual health check.
 - Quick access to logs and the bundled usage guide.
 - Conservative safety warnings around closed-lid and battery-related limitations.
@@ -100,25 +102,28 @@ The build script installs the app to:
 
 After opening the app, it appears in the macOS menu bar. It does not show a Dock icon.
 
-Typical flow:
+Typical gateway flow:
 
-1. Click the menu bar icon.
-2. Choose a duration such as `1 hour`, `2 hours`, or another timed session.
-3. Leave your Mac in a safe condition: on a desk, with airflow, preferably connected to power for long sessions.
-4. When finished, choose `Disable` or quit the app.
+1. Open the app. Gateway Guard starts automatically.
+2. Confirm the menu bar icon is green or shows Gateway Guard.
+3. Leave your Mac in a safe condition: on a desk, with airflow, preferably connected to power.
+4. Close the cover only in a safe setup. AC power is strongly recommended.
+5. When finished, choose `Disable` or quit the app.
+
+For a simple timed session instead of gateway monitoring, choose a duration such as `1 hour`, `2 hours`, or another timed session from the menu.
 
 Useful modes:
 
 - **Timed session**: keeps the Mac awake for a selected number of hours.
 - **Infinite**: keeps the Mac awake until you manually turn it off.
-- **Gateway Guard**: keeps the Mac awake and checks local Hermes Gateway / Paperclip health.
+- **Gateway Guard**: default mode. Keeps the Mac awake and checks local Hermes Gateway / Paperclip health so gateway access can survive cover-close conditions when macOS permits it.
 - **Run health check**: checks the current local service state immediately.
 - **Open logs**: opens the local app log.
 - **Open usage**: opens the bundled HTML usage guide.
 
 ## Verify that it is working
 
-Start an awake session from the menu, then run:
+Open the app or start Gateway Guard from the menu, then run:
 
 ```bash
 pmset -g assertions | grep -i "Awake Guard"
@@ -138,7 +143,7 @@ mac-awakeguard is intentionally conservative.
 
 It does not:
 
-- force a MacBook to stay awake in unsafe closed-lid battery conditions
+- guarantee closed-lid battery operation in unsafe or thermally constrained conditions
 - bypass thermal protections
 - change global `pmset` settings
 - install kernel extensions
@@ -148,8 +153,9 @@ Recommended long-running setup:
 
 - Keep the Mac on a desk with airflow.
 - Connect power for long sessions.
-- Prefer lid open for the safest behavior.
-- If using closed-lid mode, use official clamshell conditions: AC power, external display, keyboard, and mouse/trackpad.
+- For the strongest closed-cover gateway reliability, keep AC power connected.
+- Official clamshell conditions remain the safest closed-lid path: AC power, external display, keyboard, and mouse/trackpad.
+- Battery + closed cover + bag is not a safe target for gateway uptime.
 
 ## Development
 

@@ -125,7 +125,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else if let hours = startupHours() {
             enableTimed(hours: hours)
         } else {
-            enableTimed(hours: 2)
+            setMode(.gatewayGuard)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
                 self?.showLaunchFeedback()
             }
@@ -140,7 +140,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showLaunchFeedback() {
         appendLog("launchFeedback=notification")
         let script = """
-        display notification "2시간 awake를 바로 켰습니다. 상단 메뉴바의 🟢🦉 아이콘에서 제어하세요. 덮개 닫힘은 macOS 하드웨어 정책상 보장되지 않습니다." with title "Hera Awake Guard 실행 중"
+        display notification "Gateway Guard를 바로 켰습니다. 커버를 덮어도 Gateway가 유지되도록 시도합니다. 단, 배터리/가방/하드웨어 sleep은 macOS 안전 정책을 따릅니다." with title "mac-awakeguard 실행 중"
         """
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")

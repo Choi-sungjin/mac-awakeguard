@@ -26,12 +26,12 @@
 <body>
 <main>
   <h1>🦉 mac-awakeguard</h1>
-  <p class="lead">로컬 서버, 개발 작업, AI 에이전트, 다운로드가 유휴 절전으로 끊기지 않도록 돕는 macOS 메뉴 막대 앱입니다.</p>
+  <p class="lead">커버를 덮거나 화면을 잠가도 로컬 Gateway가 가능한 한 계속 작동하도록 돕는 macOS 메뉴 막대 앱입니다.</p>
 
   <div class="card danger">
     <h2>중요한 안전 한계</h2>
-    <p><strong>mac-awakeguard는 유휴 절전 방지를 요청할 뿐, macOS의 하드웨어 안전 정책을 우회하지 않습니다.</strong></p>
-    <p>덮개를 닫고 배터리 상태로 가방 안에서 계속 실행하는 사용 방식은 보장하지 않으며 권장하지 않습니다.</p>
+    <p><strong>목표는 커버를 덮어도 Gateway가 작동하도록 유지하는 것입니다.</strong></p>
+    <p>앱은 Gateway Guard를 기본으로 켜고 유휴 절전 방지를 요청합니다. 다만 배터리 상태의 닫힌 덮개, 가방 안 발열, 하드웨어 sleep 같은 macOS 안전 정책은 우회하지 않습니다.</p>
   </div>
 
   <h2>설치 방법</h2>
@@ -58,6 +58,7 @@ open ~/Applications/HeraAwakeGuard.app</code></pre>
   <div class="card">
     <ul>
       <li>로컬 개발 서버를 오래 켜두고 싶을 때</li>
+      <li>커버를 덮어도 Hermes Gateway가 가능한 한 계속 작동해야 할 때</li>
       <li>Hermes Gateway, Paperclip, 데이터베이스, 대시보드 같은 localhost 도구를 유지하고 싶을 때</li>
       <li>AI 에이전트, 빌드, 다운로드, 긴 스크립트가 유휴 절전으로 중단되지 않게 하고 싶을 때</li>
       <li>화면은 꺼두거나 잠금 상태로 두되 작업은 계속 돌리고 싶을 때</li>
@@ -76,7 +77,7 @@ open ~/Applications/HeraAwakeGuard.app</code></pre>
     </div>
     <div class="card">
       <h3>Gateway Guard</h3>
-      <p>유휴 절전 방지를 유지하면서 로컬 Hermes Gateway와 Paperclip 상태를 점검합니다.</p>
+      <p>앱 실행 시 기본으로 켜집니다. 유휴 절전 방지를 유지하면서 로컬 Hermes Gateway와 Paperclip 상태를 점검해 커버 닫힘 상황에서도 Gateway 유지 가능성을 높입니다.</p>
     </div>
     <div class="card">
       <h3>끄기 · 원래 상태</h3>
@@ -101,9 +102,9 @@ open ~/Applications/HeraAwakeGuard.app</code></pre>
   <h2>권장 운영 패턴</h2>
   <div class="card warn">
     <ul>
-      <li><strong>장시간 운영:</strong> 전원 연결, 통풍 확보, 가능하면 덮개 열림 상태 유지.</li>
-      <li><strong>닫힌 덮개 운영:</strong> AC 전원 + 외부 디스플레이/키보드/마우스가 있는 공식 clamshell 조건에서만 권장.</li>
-      <li><strong>가방 이동:</strong> 발열 위험 때문에 상시 구동을 권장하지 않습니다.</li>
+      <li><strong>커버 닫고 Gateway 유지:</strong> AC 전원 연결, 책상 위 통풍 확보, Gateway Guard 활성 상태를 권장.</li>
+      <li><strong>가장 안정적인 닫힌 덮개 운영:</strong> AC 전원 + 외부 디스플레이/키보드/마우스가 있는 공식 clamshell 조건.</li>
+      <li><strong>배터리 + 가방 이동:</strong> 발열과 macOS sleep 정책 때문에 Gateway uptime 대상으로 보지 않습니다.</li>
       <li><strong>항상 외부 접속 필요:</strong> 고정 Mac, NAS, VPS, 클라우드 서버가 더 안정적입니다.</li>
     </ul>
   </div>
