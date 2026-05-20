@@ -2,7 +2,8 @@
 set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APP_BUNDLE="$HOME/Applications/HeraAwakeGuard.app"
+INSTALL_HOME="${INSTALL_HOME:-$HOME}"
+APP_BUNDLE="$INSTALL_HOME/Applications/HeraAwakeGuard.app"
 APP_BIN="$APP_BUNDLE/Contents/MacOS/HeraAwakeGuard"
 ASSERTION_NAME="Hera Awake Guard - QA Smoke"
 

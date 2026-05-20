@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import IOKit.pwr_mgt
+import IOKit.ps
 
 final class Shell {
     static func run(_ launchPath: String, _ args: [String], timeout: TimeInterval = 5) -> (Int32, String) {
@@ -10,11 +11,29 @@ final class Shell {
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardError = pipe
+        var output = Data()
+        let lock = NSLock()
+        pipe.fileHandleForReading.readabilityHandler = { handle in
+            let chunk = handle.availableData
+            guard !chunk.isEmpty else { return }
+            lock.lock()
+            output.append(chunk)
+            lock.unlock()
+        }
         do { try process.run() } catch { return (-1, "\(error)") }
         let deadline = Date().addingTimeInterval(timeout)
         while process.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.05) }
-        if process.isRunning { process.terminate(); return (-2, "timeout") }
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        if process.isRunning {
+            process.terminate()
+            pipe.fileHandleForReading.readabilityHandler = nil
+            return (-2, "timeout")
+        }
+        pipe.fileHandleForReading.readabilityHandler = nil
+        let tail = pipe.fileHandleForReading.readDataToEndOfFile()
+        lock.lock()
+        output.append(tail)
+        let data = output
+        lock.unlock()
         return (process.terminationStatus, String(data: data, encoding: .utf8) ?? "")
     }
 }
@@ -34,7 +53,7 @@ func commandLineHealthSummary() -> String {
     let paperclip = commandLineLaunchdRunning("ai.paperclip.default") ? "Paperclip OK" : "Paperclip failed"
     let curl = Shell.run("/usr/bin/curl", ["-sS", "-m", "3", "http://127.0.0.1:3100/api/health"])
     let paperclipHttp = (curl.0 == 0 && curl.1.contains("ok")) ? "HTTP OK" : "HTTP failed"
-    let lidWarning = commandLineClamshellClosed() ? " / warning: lid closed" : ""
+    let lidWarning = commandLineClamshellClosed() ? " / warning: lid closed; macOS may enter Clamshell Sleep, so remote calls are not guaranteed" : ""
     return "\(gateway), \(paperclip), \(paperclipHttp)\(lidWarning)"
 }
 
@@ -104,17 +123,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var timer: Timer?
     private var statusImage: NSImage?
     private var lastHealth = "시작 중"
+    private var lastTickAt: Date?
+    private var lastLidClosed: Bool?
+    private var lidClosedAt: Date?
     private let logFile = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Logs/HeraAwakeGuard.log").path
     private var usagePath: String { Bundle.main.path(forResource: "usage", ofType: "html") ?? "" }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        terminateOlderInstances()
         ProcessInfo.processInfo.disableAutomaticTermination("Hera Awake Guard keeps a menu bar status item and power assertion alive")
         ProcessInfo.processInfo.disableSuddenTermination()
         NSApp.setActivationPolicy(.accessory)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         configureStatusButton(symbol: "⚪️")
         statusItem.menu = menu
-        registerSessionNotifications()
+        registerScreenSleepNotification()
         rebuildMenu()
         appendLog("launched")
         timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in self?.tick() }
@@ -137,15 +160,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
+    private func terminateOlderInstances() {
+        let currentPID = ProcessInfo.processInfo.processIdentifier
+        let bundleID = Bundle.main.bundleIdentifier ?? "ai.aifa.HeraAwakeGuard"
+        for app in NSRunningApplication.runningApplications(withBundleIdentifier: bundleID) where app.processIdentifier != currentPID {
+            appendLog("terminateOlderInstance pid=\(app.processIdentifier)")
+            app.terminate()
+        }
+    }
+
     private func showLaunchFeedback() {
-        appendLog("launchFeedback=notification")
-        let script = """
-        display notification "Gateway Guard를 바로 켰습니다. 커버를 덮어도 Gateway가 유지되도록 시도합니다. 단, 배터리/가방/하드웨어 sleep은 macOS 안전 정책을 따릅니다." with title "mac-awakeguard 실행 중"
-        """
+        let onAC = isOnACPower()
+        let extDisplay = hasExternalDisplay()
+        let body: String
+        switch (onAC, extDisplay) {
+        case (true, true):
+            body = "Gateway Guard 켜짐. AC 전원 + 외부 디스플레이 감지됨 — Bluetooth/USB 키보드·마우스·트랙패드가 있으면 공식 Clamshell 조건에서 awake 유지 가능성이 높습니다."
+        case (true, false):
+            body = "Gateway Guard 켜짐. AC 전원은 연결됐지만 외부 디스플레이가 없어 커버를 닫으면 macOS Clamshell Sleep 정책에 따라 Telegram 호출이 끊길 수 있습니다."
+        case (false, _):
+            body = "Gateway Guard 켜짐. 배터리 모드입니다. 커버를 닫는 순간 macOS가 Clamshell Sleep으로 진입하므로 Telegram 호출 유지가 보장되지 않습니다. AC 전원 + 외부 디스플레이를 권장합니다."
+        }
+        appendLog("launchFeedback=notification ac=\(onAC) extDisplay=\(extDisplay)")
+        let safeBody = body.replacingOccurrences(of: "\"", with: "\\\"")
+        let script = "display notification \"\(safeBody)\" with title \"mac-awakeguard 실행 중\""
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
         process.arguments = ["-e", script]
         try? process.run()
+    }
+
+    private func isOnACPower() -> Bool {
+        guard let snapshot = IOPSCopyPowerSourcesInfo()?.takeRetainedValue() else { return false }
+        if let type = IOPSGetProvidingPowerSourceType(snapshot)?.takeUnretainedValue() as String? {
+            return type == kIOPMACPowerKey
+        }
+        return false
+    }
+
+    private func hasExternalDisplay() -> Bool {
+        return NSScreen.screens.count > 1
     }
 
     private func startupHours() -> Int? {
@@ -153,8 +207,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return Int(CommandLine.arguments[idx + 1]).flatMap { (1...25).contains($0) ? $0 : nil }
     }
 
-    private func registerSessionNotifications() {
-        NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(sessionWillLockOrResign), name: NSWorkspace.sessionDidResignActiveNotification, object: nil)
+    private func registerScreenSleepNotification() {
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(screensDidSleep), name: NSWorkspace.screensDidSleepNotification, object: nil)
     }
 
@@ -182,6 +235,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(item("끄기 · 원래 상태", #selector(turnOff)))
         menu.addItem(.separator())
         menu.addItem(item("잠금 화면으로 전환하고 끄기", #selector(lockScreenAndTurnOff)))
+        menu.addItem(item("잠금 화면으로 전환 · Gateway Guard 유지", #selector(lockScreenKeepGatewayGuard)))
+        menu.addItem(item("디스플레이만 끄기 · 커버 열어두기", #selector(displaySleepKeepGatewayGuard)))
         menu.addItem(.separator())
         menu.addItem(item("지금 상태 점검", #selector(runHealthNow)))
         menu.addItem(item("로그 열기", #selector(openLogs)))
@@ -212,9 +267,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = Shell.run("/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession", ["-suspend"], timeout: 3)
     }
 
-    @objc private func sessionWillLockOrResign() {
-        appendLog("sessionDidResignActive=release assertions and return to off")
-        setMode(.off)
+    @objc private func lockScreenKeepGatewayGuard() {
+        appendLog("lockScreenKeepGatewayGuard=requested")
+        setMode(.gatewayGuard)
+        _ = Shell.run("/System/Library/CoreServices/Menu Extras/User.menu/Contents/Resources/CGSession", ["-suspend"], timeout: 3)
+    }
+
+    @objc private func displaySleepKeepGatewayGuard() {
+        appendLog("displaySleepKeepGatewayGuard=requested")
+        setMode(.gatewayGuard)
+        _ = Shell.run("/usr/bin/pmset", ["displaysleepnow"], timeout: 3)
     }
 
     @objc private func screensDidSleep() {
@@ -249,12 +311,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func tick(force: Bool = false) {
-        if case .timed(_, let end) = mode, Date() > end { setMode(.off); return }
+        let now = Date()
+        if let prev = lastTickAt {
+            let gap = now.timeIntervalSince(prev)
+            if gap >= 30 {
+                appendLog(String(format: "wakeFromSleepDetected gap=%.1fs (timer paused — system was asleep)", gap))
+            }
+        }
+        lastTickAt = now
+
+        if case .timed(_, let end) = mode, now > end { setMode(.off); return }
         if mode.isActive { createAssertions(reason: mode.assertionReason) }
         let health = healthSummary()
         lastHealth = health
-        let lid = clamshellClosed() ? "덮개닫힘" : "덮개열림"
-        let symbol = mode.isActive ? (health.contains("주의") || health.contains("실패") ? "⚠️" : "🟢") : "⚪️"
+        let closed = clamshellClosed()
+        if let prevClosed = lastLidClosed, prevClosed != closed {
+            if closed {
+                lidClosedAt = now
+                appendLog("lidStateChanged closed=true ac=\(isOnACPower()) extDisplay=\(hasExternalDisplay()) note=bluetooth-input-helps-only-with-official-clamshell")
+            } else {
+                let duration = lidClosedAt.map { now.timeIntervalSince($0) } ?? 0
+                appendLog(String(format: "lidStateChanged closed=false durationClosed=%.1fs", duration))
+                lidClosedAt = nil
+            }
+        }
+        lastLidClosed = closed
+        let lid = closed ? "덮개닫힘" : "덮개열림"
+        let symbol = mode.isActive ? (health.contains("주의") || health.contains("위험") || health.contains("실패") ? "⚠️" : "🟢") : "⚪️"
         configureStatusButton(symbol: symbol)
         if force || mode == .gatewayGuard { appendLog("health=\(health), lid=\(lid)") }
         rebuildMenu()
@@ -283,7 +366,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let paperclip = launchdRunning("ai.paperclip.default") ? "Paperclip OK" : "Paperclip 실패"
         let curl = Shell.run("/usr/bin/curl", ["-sS", "-m", "3", "http://127.0.0.1:3100/api/health"])
         let paperclipHttp = (curl.0 == 0 && curl.1.contains("ok")) ? "HTTP OK" : "HTTP 실패"
-        let lidWarning = clamshellClosed() ? " / 주의: 덮개 닫힘" : ""
+        let lidWarning = clamshellClosed() ? " / 위험: 덮개 닫힘·Clamshell Sleep 시 호출 불가" : ""
         return "\(gateway), \(paperclip), \(paperclipHttp)\(lidWarning)"
     }
 

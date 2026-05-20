@@ -1,10 +1,10 @@
 # mac-awakeguard
 
-**mac-awakeguard** is a small macOS menu bar utility for one core goal: keep your local gateway reachable while the Mac is closed, locked, or left running for local work.
+**mac-awakeguard** is a small macOS menu bar utility for one core goal: keep your local gateway reachable while the Mac is awake, locked, display-asleep, or left running for local work.
 
-It starts in **Gateway Guard** mode by default. That mode keeps a macOS awake assertion active and checks local Hermes Gateway / Paperclip health so gateway access has the best chance of staying online while the cover is closed.
+It starts in **Gateway Guard** mode by default. That mode keeps a macOS awake assertion active and checks local Hermes Gateway / Paperclip health. It cannot guarantee Telegram/Gateway calls while a MacBook is in closed-lid **Clamshell Sleep**.
 
-> Safety boundary: mac-awakeguard prevents **idle sleep** and is designed for safe closed-cover gateway sessions, especially on AC power. It does **not** bypass macOS hardware safety behavior, unsafe closed-lid battery sleep, clamshell requirements, or thermal protections.
+> Safety boundary: mac-awakeguard prevents **idle sleep** while macOS allows the user session to remain awake. It does **not** bypass closed-lid Clamshell Sleep, macOS hardware safety behavior, unsafe closed-lid battery sleep, clamshell requirements, or thermal protections.
 
 ## When to use it
 
@@ -15,8 +15,8 @@ Good use cases:
 - Keep a local development server available during a long task.
 - Keep localhost tools such as Hermes Gateway, Paperclip, databases, dashboards, or dev servers reachable.
 - Run local AI agents, build jobs, downloads, or scripts without idle sleep interrupting them.
-- Keep work running while the display is off, the screen is locked, or the cover is closed in a safe setup.
-- Start Gateway Guard before closing the cover so the gateway remains reachable when macOS allows the machine to stay awake.
+- Keep work running while the display is off, the screen is locked, or the Mac is otherwise allowed to remain awake.
+- Start Gateway Guard before a long local task so the gateway remains reachable when macOS allows the machine to stay awake.
 - Start a timed awake session, such as 1 hour, 2 hours, or a full work block.
 
 Do **not** use it as a promise that a MacBook will keep running with the lid closed on battery power.
@@ -28,6 +28,25 @@ Not supported / not recommended:
 - Disabling SIP, kernel protections, or system-wide power settings.
 - Overriding thermal, battery, or hardware safety behavior.
 
+## Closed-lid and Bluetooth reality
+
+mac-awakeguard does **not** “hack around” clamshell sleep. It holds normal macOS power assertions, then reports when the machine appears to be in a risky closed-lid state.
+
+The reliable closed-lid path is Apple's normal clamshell behavior:
+
+- AC power is connected.
+- An external display is connected.
+- An external keyboard, mouse, or trackpad is available. These can be USB or Bluetooth.
+- The Mac is on a desk with airflow.
+
+Bluetooth matters only as part of that official external-input setup. A paired Bluetooth keyboard, mouse, or trackpad can help keep a legitimate clamshell session usable, but a Bluetooth device by itself is not a safe bypass for lid-closed battery sleep. If the lid is closed and macOS enters **Clamshell Sleep**, Telegram/Gateway calls can stop even though the app, Gateway, or Paperclip looked healthy before sleep.
+
+Practical recommendation:
+
+- Best: AC power + external display + Bluetooth/USB keyboard or mouse/trackpad + Gateway Guard.
+- Acceptable: screen locked or display asleep with the cover open + Gateway Guard.
+- Avoid: closed lid on battery, especially in a bag.
+
 ## Features
 
 - Menu bar app with no Dock icon.
@@ -37,7 +56,7 @@ Not supported / not recommended:
 - Gateway Guard keeps awake assertions active and checks local Hermes Gateway / Paperclip status.
 - Manual health check.
 - Quick access to logs and the bundled usage guide.
-- Conservative safety warnings around closed-lid and battery-related limitations.
+- Conservative safety warnings around closed-lid, Bluetooth/clamshell assumptions, and battery-related limitations.
 
 ## Install from a release build
 
@@ -92,6 +111,13 @@ cd mac-awakeguard
 open ~/Applications/HeraAwakeGuard.app
 ```
 
+If you are building from an automation profile where `$HOME` is not the human user's home, set `INSTALL_HOME` explicitly:
+
+```bash
+INSTALL_HOME=/Users/yourname ./scripts/build_and_install.sh
+open /Users/yourname/Applications/HeraAwakeGuard.app
+```
+
 The build script installs the app to:
 
 ```text
@@ -107,7 +133,7 @@ Typical gateway flow:
 1. Open the app. Gateway Guard starts automatically.
 2. Confirm the menu bar icon is green or shows Gateway Guard.
 3. Leave your Mac in a safe condition: on a desk, with airflow, preferably connected to power.
-4. Close the cover only in a safe setup. AC power is strongly recommended.
+4. Close the cover only in a safe setup. For clamshell use, prefer AC power + external display + Bluetooth/USB keyboard or mouse/trackpad.
 5. When finished, choose `Disable` or quit the app.
 
 For a simple timed session instead of gateway monitoring, choose a duration such as `1 hour`, `2 hours`, or another timed session from the menu.
@@ -154,7 +180,8 @@ Recommended long-running setup:
 - Keep the Mac on a desk with airflow.
 - Connect power for long sessions.
 - For the strongest closed-cover gateway reliability, keep AC power connected.
-- Official clamshell conditions remain the safest closed-lid path: AC power, external display, keyboard, and mouse/trackpad.
+- Official clamshell conditions remain the safest closed-lid path: AC power, external display, and an external keyboard/mouse/trackpad. The input device may be Bluetooth or USB.
+- Do not treat “Bluetooth connected” alone as a bypass. Without AC power and external display, macOS may still enter Clamshell Sleep.
 - Battery + closed cover + bag is not a safe target for gateway uptime.
 
 ## Development
